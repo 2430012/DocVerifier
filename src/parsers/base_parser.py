@@ -8,15 +8,15 @@ class BaseParser(ABC):
         """Parse source code and extract documentable code elements."""
         pass
 
-def extract_documentation(self, node) -> str:
+    def extract_documentation(self, node) -> str:
         if not node:
             return ""
-            
+
         # Si el nodo ya trae un docstring extraído
         if hasattr(node, 'docstring') and node.docstring:
             return str(node.docstring)
 
-        # Recorrer los nodos previos en Tree-sitter para capturar comentarios (Doxygen / Javadoc / KDoc)
+        # Recorrer los nodos previos en Tree-sitter para capturar comentarios
         comments = []
         curr = getattr(node, 'prev_sibling', None)
         while curr:
