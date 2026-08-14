@@ -8,7 +8,5 @@ class BaseParser(ABC):
         """Parse source code and extract documentable code elements."""
         pass
 
-    @abstractmethod
-    def extract_documentation(self, element: CodeElement) -> None:
-        """Parse the raw documentation string into structured Documentation object."""
-        pass
+    def extract_documentation(self, node) -> str:
+    return ""

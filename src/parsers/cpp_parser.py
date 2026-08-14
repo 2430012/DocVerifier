@@ -84,9 +84,10 @@ class CppParser(BaseParser):
 
         return elements
 
-def extract_documentation(self, element: CodeElement) -> None:
-        if not element.documentation:
-            return
+def extract_documentation(self, node) -> str:
+        if not node:
+            return ""
+        return getattr(node, 'docstring', '') or ""
 
         text = element.documentation.raw_text
 
