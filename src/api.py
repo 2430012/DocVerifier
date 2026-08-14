@@ -74,6 +74,25 @@ async def verify_code(
                     )
                 ))
         except Exception as e:
+            except Exception as e:
+            import traceback
+            traceback.print_exc() # Esto mandará el error completo a los logs de Render
+            
+            # Esto mostrará el error en una tarjeta en tu página web
+            output.append(ResultData(
+                file_name=file.filename if hasattr(file, 'filename') else "Archivo Desconocido",
+                element="ERROR DEL SERVIDOR",
+                type="Crash",
+                line=0,
+                metrics=MetricData(
+                    coverage=0.0,
+                    completeness=0.0,
+                    coherence=0.0,
+                    readability=0.0,
+                    semantic_similarity=None,
+                    issues=[f"El servidor falló al analizar: {str(e)}"]
+                )
+            ))
             continue
             
     return output
