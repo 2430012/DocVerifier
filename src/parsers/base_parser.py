@@ -9,4 +9,4 @@ class BaseParser(ABC):
         pass
 
     def extract_documentation(self, node) -> str:
-    return ""
+        return ""
