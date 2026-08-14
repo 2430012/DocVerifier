@@ -4,6 +4,7 @@ from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from typing import List, Optional
 import os
+import traceback
 
 from src.parsers import get_parser
 from src.metrics.evaluator import QualityEvaluator
@@ -11,7 +12,7 @@ from src.semantic.verifier import SemanticVerifier
 
 app = FastAPI(title="DocVerifier API")
 
-# Initialize global verifier (lazy loading for semantic model)
+# Initialize global verifier
 semantic_verifier = None
 
 class MetricData(BaseModel):
@@ -23,7 +24,7 @@ class MetricData(BaseModel):
     issues: List[str]
 
 class ResultData(BaseModel):
-    file_name: str  # ¡Nuevo campo para el nombre!
+    file_name: str
     element: str
     type: str
     line: int
@@ -31,7 +32,7 @@ class ResultData(BaseModel):
 
 @app.post("/api/verify", response_model=List[ResultData])
 async def verify_code(
-    files: List[UploadFile] = File(...), # ¡Ahora recibe una lista de archivos!
+    files: List[UploadFile] = File(...),
     language: str = Form(...),
     semantic: bool = Form(False)
 ):
@@ -47,8 +48,8 @@ async def verify_code(
         try:
             content = await file.read()
             source_code = content.decode("utf-8")
-        except Exception:
-            continue # Si un archivo falla, nos saltamos al siguiente
+        except Exception as e:
+            continue
             
         try:
             lang_parser = get_parser(language)
@@ -74,15 +75,11 @@ async def verify_code(
                     )
                 ))
         except Exception as e:
-            except Exception as e:
-            import traceback
-            traceback.print_exc() # Esto mandará el error completo a los logs de Render
-            
-            # Esto mostrará el error en una tarjeta en tu página web
+            traceback.print_exc()
             output.append(ResultData(
-                file_name=file.filename if hasattr(file, 'filename') else "Archivo Desconocido",
-                element="ERROR DEL SERVIDOR",
-                type="Crash",
+                file_name=file.filename if hasattr(file, 'filename') else "Archivo",
+                element="ERROR PARSER",
+                type="Error",
                 line=0,
                 metrics=MetricData(
                     coverage=0.0,
@@ -90,10 +87,9 @@ async def verify_code(
                     coherence=0.0,
                     readability=0.0,
                     semantic_similarity=None,
-                    issues=[f"El servidor falló al analizar: {str(e)}"]
+                    issues=[f"Error al procesar: {str(e)}"]
                 )
             ))
-            continue
             
     return output
 
