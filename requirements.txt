@@ -5,3 +5,5 @@ pydantic
 tree-sitter
 tree-sitter-cpp
 tree-sitter-kotlin
+tree-sitter-python
+tree-sitter-java
