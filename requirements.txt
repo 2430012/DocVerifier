@@ -1,0 +1,7 @@
+fastapi
+uvicorn
+python-multipart
+pydantic
+tree-sitter
+tree-sitter-cpp
+tree-sitter-kotlin

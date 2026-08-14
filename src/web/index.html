@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DocVerifier | Automated Code Documentation Analysis</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/styles.css">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+    <div class="background-blobs">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+    </div>
+
+    <main class="container">
+        <header>
+            <div class="logo">
+                <i data-lucide="file-check-2"></i>
+                <h1>DocVerifier</h1>
+            </div>
+            <p>Static Analysis & NLP for Source Code Documentation Verification</p>
+        </header>
+
+        <div class="app-layout">
+            <!-- Sidebar for Controls -->
+            <aside class="glass-panel controls-panel">
+                <form id="verify-form">
+                    <div class="form-group">
+                        <label>Target Language</label>
+                        <div class="custom-select">
+                            <select id="language" required>
+                                <option value="python">Python (PEP 257)</option>
+                                <option value="java">Java (Javadoc)</option>
+                                <option value="cpp">C++ (Doxygen)</option>
+                                <option value="kotlin">Kotlin (KDoc)</option>
+                            </select>
+                            <i data-lucide="chevron-down" class="select-icon"></i>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>AI Verification</label>
+                        <label class="toggle">
+                            <input type="checkbox" id="semantic">
+                            <span class="slider"></span>
+                            <span class="toggle-label">Enable CodeBERT Semantic Analysis</span>
+                        </label>
+                        <small class="helper-text">Uses NLP to detect meaning mismatch between code and docs.</small>
+                    </div>
+
+                    <div class="form-group file-upload" id="drop-zone">
+                        <i data-lucide="upload-cloud" class="upload-icon"></i>
+                        <p>Drag & drop source code here</p>
+                        <span>or</span>
+                        <label for="file-input" class="btn-secondary">Browse File</label>
+                        <input type="file" id="file-input" hidden multiple>
+                        <div id="file-name" class="file-name"></div>
+                    </div>
+
+                    <button type="submit" class="btn-primary" id="analyze-btn">
+                        <i data-lucide="zap"></i> Analyze Source Code
+                    </button>
+                </form>
+                
+                <div id="loading" class="loading hidden">
+                    <div class="spinner"></div>
+                    <p>Analyzing code structure & semantics...</p>
+                </div>
+            </aside>
+
+            <!-- Main Content for Results -->
+            <section class="results-section">
+                
+                <div id="empty-state" class="empty-state glass-panel">
+                    <i data-lucide="file-search" class="empty-icon"></i>
+                    <h2>Ready to Analyze</h2>
+                    <p>Upload a source code file to generate a compliance report.</p>
+                </div>
+
+                <div id="results-container" class="hidden">
+                    <div class="overview-cards">
+                        <div class="glass-card stat-card">
+                            <h3 class="stat-label">Overall Coverage</h3>
+                            <div class="stat-value" id="stat-cov">0%</div>
+                        </div>
+                        <div class="glass-card stat-card">
+                            <h3 class="stat-label">Completeness</h3>
+                            <div class="stat-value" id="stat-comp">0%</div>
+                        </div>
+                        <div class="glass-card stat-card">
+                            <h3 class="stat-label">Coherence</h3>
+                            <div class="stat-value" id="stat-coh">0%</div>
+                        </div>
+                    </div>
+
+                    <div class="elements-list" id="elements-list">
+                        <!-- Result cards will be injected here -->
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+    
+    <script src="/static/app.js"></script>
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+</html>
