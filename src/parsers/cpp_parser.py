@@ -84,34 +84,3 @@ class CppParser(BaseParser):
 
         return elements
 
-def extract_documentation(self, node) -> str:
-        if not node:
-            return ""
-        return getattr(node, 'docstring', '') or ""
-
-        text = element.documentation.raw_text
-
-        text = re.sub(r'^[ \t]*/\*\*|^[ \t]*/\*!|\*/[ \t]*$', '', text, flags=re.MULTILINE)
-        text = re.sub(r'^[ \t]*///[ \t]?|^[ \t]*//![ \t]?', '', text, flags=re.MULTILINE)
-        text = re.sub(r'^[ \t]*\*[ \t]?', '', text, flags=re.MULTILINE)
-
-        doc = element.documentation
-
-        # Extraer descripción
-        desc_lines = []
-        for line in text.splitlines():
-            stripped = line.strip()
-            if stripped.startswith('@') or stripped.startswith('\\'):
-                break
-            if stripped:
-                desc_lines.append(stripped)
-        doc.description = ' '.join(desc_lines)
-
-        # Extraer parámetros (@param o \param)
-        for match in re.finditer(r'[@\\]param\s+(\w+)\s+(.*)', text):
-            doc.parameters.append(DocParameter(name=match.group(1), description=match.group(2).strip()))
-
-        # Extraer retorno (@return o \return)
-        ret_match = re.search(r'[@\\]returns?\s+(.*)', text)
-        if ret_match:
-            doc.returns = DocReturn(description=ret_match.group(1).strip())
