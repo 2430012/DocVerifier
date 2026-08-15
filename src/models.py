@@ -14,8 +14,8 @@ class DocReturn:
 
 @dataclass
 class Documentation:
-    raw_text: str
-    description: str
+    raw_text: str = ""
+    description: str = ""
     parameters: List[DocParameter] = field(default_factory=list)
     returns: Optional[DocReturn] = None
     exceptions: List[str] = field(default_factory=list)

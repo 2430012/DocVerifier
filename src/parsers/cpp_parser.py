@@ -35,7 +35,7 @@ class CppParser(BaseParser):
         return "\n".join(comments) if comments else ""
 
     def _parse_doxygen(self, raw_text: str) -> Documentation:
-        doc = Documentation(raw_text=raw_text)
+        doc = Documentation(description="", raw_text=raw_text)
         if not raw_text.strip():
             return doc
 
