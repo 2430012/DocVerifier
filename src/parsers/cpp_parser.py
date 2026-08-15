@@ -22,11 +22,9 @@ class CppParser(BaseParser):
         if not raw_text:
             return doc
 
-        # Limpiar delimitadores Doxygen (/**, *, ///, \brief)
         text = re.sub(r'^\s*/\*[*!]?|\s*\*/$', '', raw_text, flags=re.MULTILINE)
         text = re.sub(r'^\s*///?|^\s*\* ?', '', text, flags=re.MULTILINE)
 
-        # Extraer Descripción
         desc_lines = []
         for line in text.splitlines():
             stripped = line.strip()
@@ -36,11 +34,9 @@ class CppParser(BaseParser):
                 desc_lines.append(stripped)
         doc.description = ' '.join(desc_lines)
 
-        # Extraer Parámetros (@param o \param)
         for match in re.finditer(r'[@\\]param(?:\[in\]|\[out\]|\[in,out\])?\s+(\w+)\s+(.*)', text):
             doc.parameters.append(DocParameter(name=match.group(1), description=match.group(2).strip()))
 
-        # Extraer Retorno (@return, \return o @returns)
         ret_match = re.search(r'[@\\]returns?\s+(.*)', text)
         if not ret_match:
             ret_match = re.search(r'\\returns?\s+(.*)', text)
@@ -64,8 +60,7 @@ class CppParser(BaseParser):
                 start_line=node.start_point[0] + 1,
                 end_line=node.end_point[0] + 1,
                 documentation=doc,
-                parameters=[],
-                returns=None
+                parameters=[]
             ))
             current_comment = None
 
@@ -95,8 +90,7 @@ class CppParser(BaseParser):
                         start_line=node.start_point[0] + 1,
                         end_line=node.end_point[0] + 1,
                         documentation=doc,
-                        parameters=params,
-                        returns='void' if code_text.startswith('void') else 'Value'
+                        parameters=params
                     ))
                 current_comment = None
 
