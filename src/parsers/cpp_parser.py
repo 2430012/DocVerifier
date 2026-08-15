@@ -1,5 +1,5 @@
 import re
-from typing import List, Optional
+from typing import List
 import tree_sitter_cpp as tspython
 from tree_sitter import Language, Parser
 from .base_parser import BaseParser
@@ -14,12 +14,29 @@ class CppParser(BaseParser):
     def parse(self, source_code: str) -> List[CodeElement]:
         tree = self.parser.parse(bytes(source_code, "utf-8"))
         elements = []
-        self._traverse(tree.root_node, bytes(source_code, "utf-8"), None, elements)
+        self._traverse(tree.root_node, bytes(source_code, "utf-8"), elements)
         return elements
+
+    def _get_comment_for_node(self, node, source_bytes: bytes) -> str:
+        comments = []
+        curr = node.prev_sibling
+        while curr and curr.type == 'comment':
+            text = source_bytes[curr.start_byte:curr.end_byte].decode('utf-8', errors='ignore')
+            comments.insert(0, text)
+            curr = curr.prev_sibling
+            
+        if not comments and node.parent:
+            curr = node.parent.prev_sibling
+            while curr and curr.type == 'comment':
+                text = source_bytes[curr.start_byte:curr.end_byte].decode('utf-8', errors='ignore')
+                comments.insert(0, text)
+                curr = curr.prev_sibling
+                
+        return "\n".join(comments) if comments else ""
 
     def _parse_doxygen(self, raw_text: str) -> Documentation:
         doc = Documentation(raw_text=raw_text)
-        if not raw_text:
+        if not raw_text.strip():
             return doc
 
         text = re.sub(r'^\s*/\*[*!]?|\s*\*/$', '', raw_text, flags=re.MULTILINE)
@@ -45,15 +62,14 @@ class CppParser(BaseParser):
 
         return doc
 
-    def _traverse(self, node, source_bytes: bytes, current_comment: Optional[str], elements: List[CodeElement]):
-        if node.type == 'comment':
-            comment_text = source_bytes[node.start_byte:node.end_byte].decode('utf-8', errors='ignore')
-            current_comment = (current_comment + "\n" + comment_text) if current_comment else comment_text
-
-        elif node.type in ['class_specifier', 'struct_specifier']:
+    def _traverse(self, node, source_bytes: bytes, elements: List[CodeElement]):
+        if node.type in ['class_specifier', 'struct_specifier']:
             name_node = node.child_by_field_name('name')
             name = source_bytes[name_node.start_byte:name_node.end_byte].decode('utf-8', errors='ignore') if name_node else 'AnonymousClass'
-            doc = self._parse_doxygen(current_comment) if current_comment else None
+            
+            raw_comment = self._get_comment_for_node(node, source_bytes)
+            doc = self._parse_doxygen(raw_comment) if raw_comment else None
+            
             elements.append(CodeElement(
                 name=name,
                 type='Class' if node.type == 'class_specifier' else 'Struct',
@@ -62,7 +78,6 @@ class CppParser(BaseParser):
                 documentation=doc,
                 parameters=[]
             ))
-            current_comment = None
 
         elif node.type in ['function_definition', 'field_declaration', 'function_declarator']:
             code_text = source_bytes[node.start_byte:node.end_byte].decode('utf-8', errors='ignore')
@@ -82,7 +97,9 @@ class CppParser(BaseParser):
                                 if p_name:
                                     params.append(p_name)
 
-                doc = self._parse_doxygen(current_comment) if current_comment else None
+                raw_comment = self._get_comment_for_node(node, source_bytes)
+                doc = self._parse_doxygen(raw_comment) if raw_comment else None
+                
                 if not any(e.name == name and e.start_line == node.start_point[0] + 1 for e in elements):
                     elements.append(CodeElement(
                         name=name,
@@ -92,9 +109,6 @@ class CppParser(BaseParser):
                         documentation=doc,
                         parameters=params
                     ))
-                current_comment = None
 
         for child in node.children:
-            self._traverse(child, source_bytes, current_comment, elements)
-            if child.type not in ['modifiers', 'template_declaration', 'access_specifier', 'comment']:
-                current_comment = None
+            self._traverse(child, source_bytes, elements)
